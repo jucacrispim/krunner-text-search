@@ -1,0 +1,6 @@
+KRunner plugin for search in text files using baloo.
+
+This is a copy of the original baloo runner present in the 5.8 branch
+of the plasma source code and it was changed to search for text files
+instead of documents, images, etc... so source code files can be found
+using krunner

@@ -1,0 +1,19 @@
+[Desktop Entry]
+Name=Desktop Search
+Name[pt]=Pesquisa no Ambiente de Trabalho
+Name[pt_BR]=Pesquisa no Desktop
+Comment=Searches through text files
+Comment[pt]=Pesquisa em ficheiros de texto
+Comment[pt_BR]=Pesquisa em arquivos de texto
+
+X-KDE-ServiceTypes=Plasma/Runner
+Type=Service
+Icon=baloo
+X-KDE-Library=krunner_balootextsearchrunner
+X-KDE-PluginInfo-Author=Juca Crispim
+X-KDE-PluginInfo-Email=juca@poraodojuca.net
+X-KDE-PluginInfo-Name=balootextsearch
+X-KDE-PluginInfo-Version=1.0
+X-KDE-PluginInfo-License=LGPL
+X-Plasma-AdvertiseSingleRunnerQueryMode=true
+X-KDE-PluginInfo-EnabledByDefault=true
