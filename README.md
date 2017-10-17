@@ -1,5 +1,5 @@
-BalooTextSearch - KRunner plugin for search in text files using baloo.
-======================================================================
+BalooTextSearch - Baloo search KRunner plugin for text files
+============================================================
 
 
 This is a copy of the original baloo runner present in the 5.8 branch
@@ -22,7 +22,7 @@ aptitude install cmake extra-cmake-modules build-essential libkf5runner-dev \
 After that clone the source code
 
 ```
-$ git clone
+$ git clone https://github.com/jucacrispim/krunner-text-search.git
 ```
 
 Enter in the code dir and create a build directory:
