@@ -174,6 +174,12 @@ QList<Plasma::QueryMatch> TextSearchRunner::match(Plasma::RunnerContext& context
         match.setRelevance(relevance);
         relevance -= 0.05;
 
+	QString folderPath = url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash).toLocalFile();
+        if (folderPath.startsWith(QDir::homePath())) {
+	  folderPath.replace(0, QDir::homePath().length(), QStringLiteral("~"));
+        }
+        match.setSubtext(folderPath);
+
         matches << match;
     }
 
