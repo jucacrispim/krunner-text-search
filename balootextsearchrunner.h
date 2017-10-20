@@ -18,7 +18,7 @@
  *
  */
 
-// Modified by Juca Crispim to include search for text files
+// Modified by Juca Crispim to include search for source code
 // indexed by baloo. In case of problems with that
 // modifications, contact juca@poraodojuca.net
 
@@ -44,8 +44,8 @@ public:
 
     QStringList categories() const override;
     QIcon categoryIcon(const QString& category) const override;
+    QStringList sourceCodeMimeTypes();
 
-    QList<QAction *> actionsForMatch(const Plasma::QueryMatch &match) override;
     QMimeData *mimeDataForMatch(const Plasma::QueryMatch &match) override;
 
 protected Q_SLOTS:

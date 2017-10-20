@@ -18,6 +18,11 @@
  *
  */
 
+// Modified by Juca Crispim to include search for source code
+// indexed by baloo. In case of problems with that
+// modifications, contact juca@poraodojuca.net
+
+
 #include "balootextsearchrunner.h"
 
 #include <QtGlobal>
@@ -30,26 +35,60 @@
 #include <QMimeDatabase>
 #include <QTimer>
 #include <QMimeData>
+#include <QMimeType>
 
 #include <Baloo/Query>
 
 #include <KIO/OpenFileManagerWindowJob>
 
+
+const char* const s_sourceCodeMimeTypes[] = {
+    "text/css",
+    "text/x-c++src",
+    "text/x-c++hdr",
+    "text/x-csrc",
+    "text/x-chdr", // c header files
+    "text/x-python",
+    "text/x-assembly",
+    "text/x-java",
+    "text/x-objsrc",
+    "text/x-ruby",
+    "text/x-scheme",
+    "text/x-pascal",
+    "text/x-yacc",
+    "text/x-sed",
+    "text/x-haskell",
+    "text/asp",
+    "application/x-awk",
+    "application/x-cgi",
+    "application/x-csh",
+    "application/x-ipynb+json",
+    "application/x-java",
+    "application/x-javascript",
+    "application/javascript",
+    "application/x-perl",
+    "application/x-php",
+    "application/x-python",
+    "application/x-sh",
+
+    // end of list
+    nullptr
+};
+
+
 TextSearchRunner::TextSearchRunner(QObject* parent, const QVariantList& args)
   : Plasma::AbstractRunner(parent, args)
 {
-  setPriority(HighPriority);
 }
 
 TextSearchRunner::TextSearchRunner(QObject* parent, const QString& serviceId)
   : Plasma::AbstractRunner(parent, serviceId)
 {
-  setPriority(HighPriority);
 }
 
 void TextSearchRunner::init()
 {
-  Plasma::RunnerSyntax syntax(QStringLiteral(":q"), i18n("Search through files, emails and contacts"));
+  Plasma::RunnerSyntax syntax(QStringLiteral(":q"), i18n("Search through source code files"));
 }
 
 TextSearchRunner::~TextSearchRunner()
@@ -60,7 +99,7 @@ TextSearchRunner::~TextSearchRunner()
 QStringList TextSearchRunner::categories() const
 {
   QStringList list;
-  list << i18n("Text");
+  list << i18n("Source Code");
 
   return list;
 }
@@ -69,6 +108,15 @@ QIcon TextSearchRunner::categoryIcon(const QString& category) const
 {
 
     return Plasma::AbstractRunner::categoryIcon(category);
+}
+
+QStringList TextSearchRunner::sourceCodeMimeTypes()
+{
+  QStringList l;
+
+  for (int i = 0; s_sourceCodeMimeTypes[i]; ++i)
+    l << QLatin1String(s_sourceCodeMimeTypes[i]);
+  return l;
 }
 
 QList<Plasma::QueryMatch> TextSearchRunner::match(Plasma::RunnerContext& context, const QString& type,
@@ -82,10 +130,18 @@ QList<Plasma::QueryMatch> TextSearchRunner::match(Plasma::RunnerContext& context
         return QList<Plasma::QueryMatch>();
 
     Baloo::Query query;
+    QString s_base_query;
     QString s_query = context.query();
-    qInfo("balootextsearch - query: %s", s_query.toLatin1().constData());
-    query.setSearchString(context.query());
+    for (const auto& i: TextSearchRunner::sourceCodeMimeTypes()){
+      s_base_query += "mimetype:" + i + " OR ";
+    }
+    s_base_query.remove(QRegExp("OR\\s*$"));
+
+    s_query = s_base_query + s_query;
+    query.setSearchString(s_query);
+    // only to avoid warnings...
     query.setType(type);
+    query.setType("");
     query.setLimit(10);
 
     Baloo::ResultIterator it = query.exec();
@@ -100,13 +156,15 @@ QList<Plasma::QueryMatch> TextSearchRunner::match(Plasma::RunnerContext& context
     // runner has not a higher relevance. So stupid.
     // Each runner plugin should not have to know about the others.
     // Anyway, that's why we're starting with .75
+    QString mimes;
     float relevance = .75;
     while (context.isValid() && it.next()) {
         Plasma::QueryMatch match(this);
         QString localUrl = it.filePath();
         const QUrl url = QUrl::fromLocalFile(localUrl);
 
-        QString iconName = mimeDb.mimeTypeForFile(localUrl).iconName();
+	QMimeType mimeType = mimeDb.mimeTypeForFile(localUrl);
+        QString iconName = mimeType.iconName();
         match.setIconName(iconName);
         match.setId(it.filePath());
         match.setText(url.fileName());
@@ -115,12 +173,6 @@ QList<Plasma::QueryMatch> TextSearchRunner::match(Plasma::RunnerContext& context
         match.setMatchCategory(category);
         match.setRelevance(relevance);
         relevance -= 0.05;
-
-        QString folderPath = url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash).toLocalFile();
-        if (folderPath.startsWith(QDir::homePath())) {
-            folderPath.replace(0, QDir::homePath().length(), QStringLiteral("~"));
-        }
-        match.setSubtext(folderPath);
 
         matches << match;
     }
@@ -147,18 +199,13 @@ void TextSearchRunner::match(Plasma::RunnerContext& context)
         timer.start(100);
         loop.exec();
 
-        // if (!context.isValid()) {
-        //     return;
-        // }
+        if (!context.isValid()) {
+            return;
+        }
     }
 
     QList<Plasma::QueryMatch> matches;
-    // matches << match(context, QStringLiteral("Audio"), i18n("Audio"));
-    // matches << match(context, QStringLiteral("Image"), i18n("Image"));
-    // matches << match(context, QStringLiteral("Document"), i18n("Document"));
-    // matches << match(context, QStringLiteral("Video"), i18n("Video"));
-    matches << match(context, QStringLiteral("Text"), i18n("Text"));
-    // matches << match(context, QStringLiteral("Folder"), i18n("Folder"));
+    matches << match(context, QStringLiteral("Text"), i18n("Source Code"));
 
     context.addMatches(matches);
 }
@@ -175,18 +222,6 @@ void TextSearchRunner::run(const Plasma::RunnerContext&, const Plasma::QueryMatc
     new KRun(url, 0);
 }
 
-QList<QAction *> TextSearchRunner::actionsForMatch(const Plasma::QueryMatch &match)
-{
-    Q_UNUSED(match)
-
-    const QString openParentDirId = QStringLiteral("openParentDir");
-
-    if (!action(openParentDirId)) {
-        (addAction(openParentDirId, QIcon::fromTheme(QStringLiteral("document-open-folder")), i18n("Open Containing Folder")))->setData(openParentDirId);
-    }
-
-    return {action(openParentDirId)};
-}
 
 QMimeData *TextSearchRunner::mimeDataForMatch(const Plasma::QueryMatch &match)
 {
