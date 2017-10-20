@@ -1,14 +1,14 @@
 [Desktop Entry]
-Name=Desktop Search
+Name=Source code file Search
 Name[pt]=Pesquisa no Ambiente de Trabalho
 Name[pt_BR]=Pesquisa no Desktop
-Comment=Searches through text files
-Comment[pt]=Pesquisa em ficheiros de texto
-Comment[pt_BR]=Pesquisa em arquivos de texto
+Comment=Searches through source code files
+Comment[pt]=Pesquisa em ficheiros de código fonte
+Comment[pt_BR]=Pesquisa em arquivos de código fonte
 
 X-KDE-ServiceTypes=Plasma/Runner
 Type=Service
-Icon=baloo
+Icon=okteta
 X-KDE-Library=krunner_balootextsearchrunner
 X-KDE-PluginInfo-Author=Juca Crispim
 X-KDE-PluginInfo-Email=juca@poraodojuca.net
